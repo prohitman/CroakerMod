@@ -10,5 +10,7 @@ public class CroakerRenderer extends GeoEntityRenderer<CroakerEntity> {
     public CroakerRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new CroakerModel());
         this.shadowRadius = 1.5f;
+
+        addLayer(new GlowEyesLayer(this));
     }
 }
