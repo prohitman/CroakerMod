@@ -35,11 +35,11 @@ public class CroakerModel extends AnimatedGeoModel<CroakerEntity> {
 
         if (head != null) {
             EntityModelData extraData = (EntityModelData) animationEvent.getExtraDataOfType(EntityModelData.class).get(0);
-            head.setRotationY((extraData.netHeadYaw / 2) * Mth.DEG_TO_RAD);
-            head.setRotationX((extraData.headPitch / 2) * Mth.DEG_TO_RAD);
+            head.setRotationY((extraData.netHeadYaw / 2) * ((float)Math.PI / 270F));
+            head.setRotationX((extraData.headPitch / 2) * ((float)Math.PI / 270F));
             if(neck1 != null){
-                neck1.setRotationY((extraData.netHeadYaw) * Mth.DEG_TO_RAD);
-                neck1.setRotationX((extraData.headPitch) * Mth.DEG_TO_RAD);
+                neck1.setRotationY((extraData.netHeadYaw) * ((float)Math.PI / 270F));
+                neck1.setRotationX((extraData.headPitch) * ((float)Math.PI / 270F));
             }
         }
     }
