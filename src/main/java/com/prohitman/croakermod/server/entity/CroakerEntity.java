@@ -14,6 +14,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.manager.AnimationData;
@@ -87,6 +89,37 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         this.setBusy(pCompound.getBoolean("busy"));
+    }
+
+    /*
+    STRAFING
+     */
+
+    @Override
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if(pSource.getDirectEntity() instanceof Player player && this.random.nextInt(3) == 0){
+            boolean left;
+            Vec3 arrowPos = player.position();
+            Vec3 rightVector = this.getLookAngle().yRot(0.5F * (float) Math.PI).add(this.position());
+            Vec3 leftVector = this.getLookAngle().yRot(-0.5F * (float) Math.PI).add(this.position());
+            if (arrowPos.distanceTo(rightVector) < arrowPos.distanceTo(leftVector)) {
+                left = false;
+            } else if (arrowPos.distanceTo(rightVector) > arrowPos.distanceTo(leftVector)) {
+                left = true;
+            } else {
+                left = this.getRandom().nextBoolean();
+            }
+            Vec3 vector3d2 = player.getLookAngle().yRot((float) ((left ? -0.5F : 0.5F) * Math.PI)).normalize();
+            //emu.setAnimation(left ? EntityEmu.ANIMATION_DODGE_LEFT : EntityEmu.ANIMATION_DODGE_RIGHT);
+            this.hasImpulse = true;
+            if (!this.horizontalCollision) {
+                this.move(MoverType.SELF, new Vec3(vector3d2.x() * 0.75F, 0.2F, vector3d2.z() * 0.75F));
+            }
+
+            this.setDeltaMovement(this.getDeltaMovement().add(vector3d2.x() * 1F, 0.45F, vector3d2.z() * 1F));
+            return false;
+        }
+        return super.hurt(pSource, pAmount);
     }
 
     @Override
