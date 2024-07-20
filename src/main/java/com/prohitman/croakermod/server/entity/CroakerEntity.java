@@ -1,9 +1,6 @@
 package com.prohitman.croakermod.server.entity;
 
-import com.prohitman.croakermod.server.entity.goals.CLookAtPlayerGoal;
-import com.prohitman.croakermod.server.entity.goals.CRandomLookAroundGoal;
-import com.prohitman.croakermod.server.entity.goals.CStrollGoal;
-import com.prohitman.croakermod.server.entity.goals.FollowPlayerGoal;
+import com.prohitman.croakermod.server.entity.goals.*;
 import jdk.jfr.Enabled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -12,10 +9,9 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
@@ -29,6 +25,8 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -42,6 +40,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
     private static final EntityDataAccessor<Boolean> BUSY = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
 
+    public int jumpCooldown = 0;
     public CroakerEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.maxUpStep = 1f;
@@ -51,9 +50,13 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new CRandomLookAroundGoal(this));
         this.goalSelector.addGoal(1, new CStrollGoal(this, 1.0D, 0.25f));
+       // this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.1d, true));
+        this.goalSelector.addGoal(3, new CPounceGoal(this));
 
         this.goalSelector.addGoal(8, new CLookAtPlayerGoal(this, Player.class, 50, 0.01f));
         this.goalSelector.addGoal(8, new FollowPlayerGoal(this, 0.85d, 10, 35));
+
+        this.targetSelector.addGoal(8, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -91,13 +94,44 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
         this.setBusy(pCompound.getBoolean("busy"));
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+        if(this.getTarget() != null){
+            //this.setBusy(true);
+        }
+        if(!this.level.isClientSide){
+            if(jumpCooldown != 0){
+                jumpCooldown--;
+            }
+        }
+    }
+
+    /*
+    ATTACKING
+     */
+
+    @Override
+    public boolean doHurtTarget(Entity pEntity) {
+        if(pEntity instanceof Player player){
+            if(player.getUseItem().is(Items.SHIELD) && player.isUsingItem()){
+                player.getCooldowns().addCooldown(player.getUseItem().getItem(), 100);
+                player.stopUsingItem();
+                player.level.broadcastEntityEvent(player, (byte)30);
+
+                return false;
+            }
+        }
+        return super.doHurtTarget(pEntity);
+    }
+
     /*
     STRAFING
      */
 
     @Override
     public boolean hurt(DamageSource pSource, float pAmount) {
-        if(pSource.getDirectEntity() instanceof Player player && this.random.nextInt(3) == 0){
+        if(pSource.getDirectEntity() instanceof Player player && this.isOnGround() && this.random.nextInt(2) == 0){
             boolean left;
             Vec3 arrowPos = player.position();
             Vec3 rightVector = this.getLookAngle().yRot(0.5F * (float) Math.PI).add(this.position());
@@ -120,6 +154,36 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
             return false;
         }
         return super.hurt(pSource, pAmount);
+    }
+
+    /*
+    JUMPING
+     */
+
+    public static boolean isPathClear(CroakerEntity pFox, LivingEntity pLivingEntity) {
+        double d0 = pLivingEntity.getZ() - pFox.getZ();
+        double d1 = pLivingEntity.getX() - pFox.getX();
+        double d2 = d0 / d1;
+        int i = 6;
+
+        for(int j = 0; j < 7; ++j) {
+            double d3 = d2 == 0.0D ? 0.0D : d0 * (double)((float)j / 6.0F);
+            double d4 = d2 == 0.0D ? d1 * (double)((float)j / 6.0F) : d3 / d2;
+
+            for(int k = 1; k < 5; ++k) {
+                if (!pFox.level.getBlockState(new BlockPos(pFox.getX() + d4, pFox.getY() + (double)k, pFox.getZ() + d3)).getMaterial().isReplaceable()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    @Override
+    public void registerControllers(AnimationData animationData) {
+
     }
 
     @Override
@@ -151,8 +215,13 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
     }
 
     @Override
-    public void registerControllers(AnimationData animationData) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
+        return false;
+    }
 
+    @Override
+    public boolean canBeLeashed(Player pPlayer) {
+        return false;
     }
 
     @Override
