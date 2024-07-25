@@ -75,6 +75,7 @@ public class CPounceGoal extends JumpGoal {
         //Fox.this.setJumping(true);
         //Fox.this.setIsPouncing(true);
         //Fox.this.setIsInterested(false);
+        croaker.setPouncing(true);
         LivingEntity livingentity = croaker.getTarget();
         if (livingentity != null) {
             croaker.getLookControl().setLookAt(livingentity, 60.0F, 30.0F);
@@ -98,6 +99,7 @@ public class CPounceGoal extends JumpGoal {
         //Fox.this.setIsInterested(false);
         //Fox.this.setIsPouncing(false);
         croaker.jumpCooldown = 100;
+        croaker.setPouncing(false);
     }
 
     /**
