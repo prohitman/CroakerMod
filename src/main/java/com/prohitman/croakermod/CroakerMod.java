@@ -1,6 +1,8 @@
 package com.prohitman.croakermod;
 
 import com.mojang.logging.LogUtils;
+import com.prohitman.croakermod.climbing.common.CommonSetup;
+import com.prohitman.croakermod.climbing.common.Config;
 import com.prohitman.croakermod.core.ModEntities;
 import com.prohitman.croakermod.core.ModItems;
 import net.minecraft.client.Minecraft;
@@ -14,7 +16,9 @@ import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -35,9 +39,16 @@ public class CroakerMod
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         GeckoLib.initialize();
 
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON, "croakermod.toml");
+
         ModItems.ITEMS.register(modEventBus);
         ModEntities.ENTITY_TYPES.register(modEventBus);
 
+        modEventBus.addListener(this::onCommonSetup);
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    private void onCommonSetup(final FMLCommonSetupEvent event) {
+        CommonSetup.run();
     }
 }
