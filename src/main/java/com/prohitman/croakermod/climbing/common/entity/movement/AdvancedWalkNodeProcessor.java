@@ -98,12 +98,12 @@ public class AdvancedWalkNodeProcessor extends WalkNodeEvaluator {
 
 	@Override
 	public void prepare(PathNavigationRegion pLevel, Mob pMob) {
-		super.prepare(pLevel, mob);
+		super.prepare(pLevel, pMob);
 
-		if(mob instanceof IAdvancedPathFindingEntity) {
-			this.advancedPathFindingEntity = (IAdvancedPathFindingEntity) mob;
+		if(pMob instanceof IAdvancedPathFindingEntity) {
+			this.advancedPathFindingEntity = (IAdvancedPathFindingEntity) pMob;
 		} else {
-			throw new IllegalArgumentException("Only mobs that extend " + IAdvancedPathFindingEntity.class.getSimpleName() + " are supported. Received: " + mob.getClass().getName());
+			throw new IllegalArgumentException("Only mobs that extend " + IAdvancedPathFindingEntity.class.getSimpleName() + " are supported. Received: " + pMob.getClass().getName());
 		}
 
 		this.pathingSizeOffsetX = Math.max(1, Mth.floor(this.mob.getBbWidth() / 2.0f + 1));

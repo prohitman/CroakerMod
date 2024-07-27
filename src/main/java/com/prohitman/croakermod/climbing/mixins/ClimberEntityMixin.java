@@ -1085,7 +1085,7 @@ public abstract class ClimberEntityMixin extends PathfinderMob implements IClimb
 	}
 
 	@Override
-	public boolean getAdjustedCanTriggerWalking(boolean canTriggerWalking) {
+	public boolean getAdjustedCanTriggerWalking() {
 		if(this.preWalkingPosition != null && this.canClimberTriggerWalking() && !this.isPassenger()) {
 			Vec3 moved = this.position().subtract(this.preWalkingPosition);
 			this.preWalkingPosition = null;

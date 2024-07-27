@@ -12,5 +12,5 @@ public interface IEntityMovementHook {
 	@Nullable
 	public BlockPos getAdjustedOnPosition(BlockPos onPosition);
 
-	public boolean getAdjustedCanTriggerWalking(boolean canTriggerWalking);
+	public boolean getAdjustedCanTriggerWalking();
 }

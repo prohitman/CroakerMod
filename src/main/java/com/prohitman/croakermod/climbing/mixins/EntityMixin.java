@@ -49,14 +49,16 @@ public abstract class EntityMixin implements IEntityMovementHook, IEntityReadWri
 	}
 
 	//Needs further study, replaced by entity$movementemission.emitsAnything()
-/*	@Inject(method = "canTriggerWalking()Z", at = @At("RETURN"), cancellable = true)
-	private void onCanTriggerWalking(CallbackInfoReturnable<Boolean> ci) {
-		ci.setReturnValue(this.getAdjustedCanTriggerWalking(ci.getReturnValue()));
-	}*/
+	@Inject(method = "move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V", at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/world/entity/Entity$MovementEmission;emitsAnything()Z"), cancellable = true)
+	private void onCanTriggerWalking(MoverType type, Vec3 pos, CallbackInfo ci) {
+		this.getAdjustedCanTriggerWalking();
+	}
 
 	@Override
-	public boolean getAdjustedCanTriggerWalking(boolean canTriggerWalking) {
-		return canTriggerWalking;
+	public boolean getAdjustedCanTriggerWalking() {
+		return true;
 	}
 
 	@Inject(method = "load(Lnet/minecraft/nbt/CompoundTag;)V", at = @At(
@@ -71,11 +73,11 @@ public abstract class EntityMixin implements IEntityMovementHook, IEntityReadWri
 	@Override
 	public void onRead(CompoundTag nbt) { }
 
-		@Inject(method = "saveWithoutId(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag;", at = @At(
-			value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/Entity;addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
-			shift = At.Shift.AFTER
-			))
+	@Inject(method = "saveWithoutId(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag;", at = @At(
+		value = "INVOKE",
+		target = "Lnet/minecraft/world/entity/Entity;addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
+		shift = At.Shift.AFTER
+		))
 	private void onWrite(CompoundTag nbt, CallbackInfoReturnable<CompoundTag> ci) {
 		this.onWrite(nbt);
 	}
@@ -84,14 +86,16 @@ public abstract class EntityMixin implements IEntityMovementHook, IEntityReadWri
 	public void onWrite(CompoundTag nbt) { }
 
 	@Shadow(prefix = "shadow$")
-	private void shadow$registerData() { }
+	protected void shadow$defineSynchedData() { }
+
+	@Shadow protected abstract void tryCheckInsideBlocks();
 
 	@Redirect(method = "<init>*", at = @At(
 			value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/Entity;defineSynchedData()V"
 			))
 	private void onRegisterData(Entity _this) {
-		this.shadow$registerData();
+		this.shadow$defineSynchedData();
 		
 		if(_this == (Object) this) {
 			this.onRegisterData();
