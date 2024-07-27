@@ -49,10 +49,10 @@ public abstract class EntityMixin implements IEntityMovementHook, IEntityReadWri
 	}
 
 	//Needs further study, replaced by entity$movementemission.emitsAnything()
-	@Inject(method = "canTriggerWalking()Z", at = @At("RETURN"), cancellable = true)
-	private vid onCanTriggerWalking(CallbackInfoReturnable<Boolean> ci) {
+/*	@Inject(method = "canTriggerWalking()Z", at = @At("RETURN"), cancellable = true)
+	private void onCanTriggerWalking(CallbackInfoReturnable<Boolean> ci) {
 		ci.setReturnValue(this.getAdjustedCanTriggerWalking(ci.getReturnValue()));
-	}
+	}*/
 
 	@Override
 	public boolean getAdjustedCanTriggerWalking(boolean canTriggerWalking) {

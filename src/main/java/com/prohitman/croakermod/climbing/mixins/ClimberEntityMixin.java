@@ -21,6 +21,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
@@ -448,10 +449,10 @@ public abstract class ClimberEntityMixin extends PathfinderMob implements IClimb
 	@Override
 	public void onTick() {
 		if(!this.level.isClientSide && this.level instanceof ServerLevel) {
-			TrackedEntity entityTracker = ((ServerLevel) this.level).getChunkSource().chunkMap.entityMap.get(this.getId());//Needs AT for entityMap
+			ChunkMap.TrackedEntity entityTracker = ((ServerLevel) this.level).getChunkSource().chunkMap.entityMap.get(this.getId());//Needs AT for entityMap
 
 			//Prevent premature syncing of position causing overly smoothed movement
-			if(entityTracker != null && entityTracker.serverEntity.updateCounter % entityTracker.serverEntity.updateFrequency == 0) {
+			if(entityTracker != null && entityTracker.serverEntity.tickCount % entityTracker.serverEntity.updateInterval == 0) {
 				Orientation orientation = this.getOrientation();
 
 				Vec3 look = orientation.getGlobal(this.getYRot(), this.getXRot());
