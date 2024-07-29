@@ -69,16 +69,15 @@ public class CroakerModel extends AnimatedGeoModel<CroakerEntity> {
 
         IBone head = this.getAnimationProcessor().getBone("Head");
         IBone neck1 = this.getAnimationProcessor().getBone("Neck1");
-        int attachAngle = animatable.attachAngle;
 
         if (head != null) {
             EntityModelData extraData = (EntityModelData) animationEvent.getExtraDataOfType(EntityModelData.class).get(0);
 
             head.setRotationY(((extraData.netHeadYaw / 2)) * ((float)Math.PI / 270F));
-            head.setRotationX((((extraData.headPitch + attachAngle) / 2)) * ((float)Math.PI / 270F));
+            head.setRotationX((((extraData.headPitch) / 2)) * ((float)Math.PI / 270F));
             if(neck1 != null){
                 neck1.setRotationY(((extraData.netHeadYaw)) * ((float)Math.PI / 270F));
-                neck1.setRotationX(((extraData.headPitch + attachAngle)) * ((float)Math.PI / 270F));
+                neck1.setRotationX(((extraData.headPitch)) * ((float)Math.PI / 270F));
             }
         }
     }
