@@ -1,10 +1,6 @@
 package com.prohitman.croakermod.climbing.common.entity.movement;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -13,7 +9,11 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import com.mojang.logging.LogUtils;
+import net.minecraft.client.particle.SuspendedParticle;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.util.profiling.metrics.MetricCategory;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.pathfinder.*;
 import net.minecraft.world.level.PathNavigationRegion;
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CustomPathFinder extends PathFinder {
 	private final BinaryHeap path = new BinaryHeap();
-	private final Node[] pathOptions = new Node[32];
+	private final Node[] neighbors = new Node[32];
 	private final NodeEvaluator nodeProcessor;
 
 	private int maxExpansions = 200;
@@ -58,26 +58,34 @@ public class CustomPathFinder extends PathFinder {
 	@Override
 	public Path findPath(@NotNull PathNavigationRegion region, @NotNull Mob entity, Set<BlockPos> checkpoints, float maxDistance, int checkpointRange, float maxExpansionsMultiplier) {
 		this.path.clear();
-
+		//System.out.println("In custom path finder");
 		this.nodeProcessor.prepare(region, entity);
 
 		Node pathpoint = this.nodeProcessor.getStart();
+		if(pathpoint == null){
+			return null;
+		}	else {
+			//System.out.println("Obtained starting position: " + pathpoint.asBlockPos());
 
-		//Create a checkpoint for each block pos in the checkpoints set
-		Map<Target, BlockPos> checkpointsMap = checkpoints.stream().collect(Collectors.toMap((pos) -> {
-			return this.nodeProcessor.getGoal(pos.getX(), pos.getY(), pos.getZ());
-		}, Function.identity()));
+			//Create a checkpoint for each block pos in the checkpoints set
+			Map<Target, BlockPos> checkpointsMap = checkpoints.stream().collect(Collectors.toMap((pos) -> {
+				return this.nodeProcessor.getGoal(pos.getX(), pos.getY(), pos.getZ());
+			}, Function.identity()));
 
-		Path path = this.findPath(pathpoint, checkpointsMap, maxDistance, checkpointRange, maxExpansionsMultiplier);
-		this.nodeProcessor.done();
+			Path path = this.findPath(region.getProfiler(), pathpoint, checkpointsMap, maxDistance, checkpointRange, maxExpansionsMultiplier);
+			this.nodeProcessor.done();
 
-		return path;
+			return path;
+		}
 	}
 
 	//TODO Re-implement custom heuristics
 
 	@Nullable
-	private Path findPath(Node start, Map<Target, BlockPos> checkpointsMap, float maxDistance, int checkpointRange, float maxExpansionsMultiplier) {
+	private Path findPath(ProfilerFiller pProfiler, Node start, Map<Target, BlockPos> checkpointsMap, float maxDistance, int checkpointRange, float maxExpansionsMultiplier) {
+		pProfiler.push("find_path");
+		pProfiler.markForCharting(MetricCategory.PATH_FINDING);
+
 		Set<Target> checkpoints = checkpointsMap.keySet();
 
 		start.g = 0.0F;
@@ -104,14 +112,16 @@ public class CustomPathFinder extends PathFinder {
 			}
 
 			if(!reachedCheckpoints.isEmpty()) {
+				//System.out.println("Breaking...");
 				break;
 			}
 
 			if(openPathPoint.distanceTo(start) < maxDistance) {
-				int numOptions = this.nodeProcessor.getNeighbors(this.pathOptions, openPathPoint);
+				int numOptions = this.nodeProcessor.getNeighbors(this.neighbors, openPathPoint);
+				//System.out.println("Reached here!!!!!!!" + numOptions + Arrays.toString(this.neighbors));
 
 				for(int i = 0; i < numOptions; ++i) {
-					Node successorPathPoint = this.pathOptions[i];
+					Node successorPathPoint = this.neighbors[i];
 
 					float costHeuristic = openPathPoint.distanceTo(successorPathPoint); //TODO Replace with cost heuristic
 
@@ -132,6 +142,7 @@ public class CustomPathFinder extends PathFinder {
 						} else {
 							//distanceToTarget corresponds to the evaluation function, i.e. total path cost + heuristic
 							successorPathPoint.f = successorPathPoint.g + successorPathPoint.h;
+							//System.out.println("Inserted new point: " + successorPathPoint.asBlockPos());
 							this.path.insert(successorPathPoint);
 						}
 					}
@@ -139,21 +150,32 @@ public class CustomPathFinder extends PathFinder {
 			}
 		}
 
-		Optional<Path> path;
+		Optional<Path> optional = !reachedCheckpoints.isEmpty() ? reachedCheckpoints.stream().map((checkpoint) -> {
+			return this.createPath(checkpoint.getBestNode(), checkpointsMap.get(checkpoint), true);
+		}).min(Comparator.comparingInt(Path::getNodeCount)) : checkpoints.stream().map((checkpoint) -> {
+			//System.out.println("Checkpoint here: " + checkpoint.asBlockPos());
+			return this.createPath(checkpoint.getBestNode(), checkpointsMap.get(checkpoint), false);
+		}).min(Comparator.comparingDouble(Path::getDistToTarget).thenComparingInt(Path::getNodeCount));
+
+/*		Optional<Path> path;
 
 		if(!reachedCheckpoints.isEmpty()) {
+			System.out.println("In here?");
 			//Use shortest path towards next reached checkpoint
 			path = reachedCheckpoints.stream().map((checkpoint) -> {
 				return this.createPath(checkpoint.getBestNode(), checkpointsMap.get(checkpoint), true);
 			}).min(Comparator.comparingInt(Path::getNodeCount));
 		} else {
+			System.out.println("Or here?");
+
 			//Use lowest cost path towards any checkpoint
 			path = checkpoints.stream().map((checkpoint) -> {
 				return this.createPath(checkpoint.getBestNode(), checkpointsMap.get(checkpoint), false);
-			}).min(Comparator.comparingDouble(Path::getDistToTarget /*TODO Replace calculation with cost heuristic*/).thenComparingInt(Path::getNodeCount));
-		}
-
-		return !path.isPresent() ? null : path.get();
+			}).min(Comparator.comparingDouble(Path::getDistToTarget *//*TODO Replace calculation with cost heuristic*//*).thenComparingInt(Path::getNodeCount));
+		}*/
+		pProfiler.pop();
+		//System.out.println("Created path :: " + (optional.map(value -> (value.getNodeCount() + " " + value.getTarget())).orElse("")));
+		return !optional.isPresent() ? null : optional.get();
 	}
 
 	private float computeHeuristic(Node pathPoint, Set<Target> checkpoints) {

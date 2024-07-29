@@ -33,6 +33,7 @@ import software.bernie.geckolib3.GeckoLib;
 public class CroakerMod
 {
     public static final String MODID = "croakermod";
+    public static Logger LOGGER = LogUtils.getLogger();
 
     public CroakerMod()
     {

@@ -35,6 +35,8 @@ public class ClimberMoveController<T extends Mob & IClimberEntity> extends MoveC
 
 	@Override
 	public void setWantedPosition(double x, double y, double z, double speedIn) {
+		//System.out.println("I need to move to wantedpos: " + this.wantedX + " " + this.wantedY + " " + this.wantedZ);
+
 		this.setMoveTo(x, y, z, null, null, speedIn);
 	}
 
@@ -50,6 +52,8 @@ public class ClimberMoveController<T extends Mob & IClimberEntity> extends MoveC
 		double speed = this.climber.getMovementSpeed() * this.speedModifier;
 
 		if (this.operation == MoveControl.Operation.STRAFE) {
+			//System.out.println("I need to move to in strafe: " + this.wantedX + " " + this.wantedY + " " + this.wantedZ);
+
 			this.operation = MoveControl.Operation.WAIT;
 
 			float forward = this.strafeForwards;
@@ -77,6 +81,8 @@ public class ClimberMoveController<T extends Mob & IClimberEntity> extends MoveC
 			this.mob.setZza(this.strafeForwards);
 			this.mob.setXxa(this.strafeRight);
 		} else if (this.operation == MoveControl.Operation.MOVE_TO) {
+			//ystem.out.println("I need to move to: " + this.wantedX + " " + this.wantedY + " " + this.wantedZ);
+
 			this.operation = MoveControl.Operation.WAIT;
 
 			double dx = this.wantedX - this.mob.getX();

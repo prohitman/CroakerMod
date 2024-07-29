@@ -26,10 +26,10 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SoulFireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -38,9 +38,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = Spider.class, priority = 1001)
 public abstract class BetterSpiderEntityMixin extends Monster implements IClimberEntity, IMobEntityRegisterGoalsHook, IMobEntityNavigatorHook {
 
+	@Unique
 	private static final UUID FOLLOW_RANGE_INCREASE_ID = UUID.fromString("9e815957-3a8e-4b65-afbc-eba39d2a06b4");
+	@Unique
 	private static final AttributeModifier FOLLOW_RANGE_INCREASE = new AttributeModifier(FOLLOW_RANGE_INCREASE_ID, "Croaker Mod follow range increase", 8.0D, AttributeModifier.Operation.ADDITION);
 
+	@Unique
 	private boolean pathFinderDebugPreview;
 
 	private BetterSpiderEntityMixin(EntityType<? extends Monster> type, Level worldIn) {
@@ -69,11 +72,11 @@ public abstract class BetterSpiderEntityMixin extends Monster implements IClimbe
 			target = "Lnet/minecraft/world/entity/ai/goal/GoalSelector;addGoal(ILnet/minecraft/world/entity/ai/goal/Goal;)V"
 			))
 	private void onAddGoal(GoalSelector selector, int priority, Goal task) {
-		if(task instanceof LeapAtTargetGoal) {
+		if(task.getClass() == LeapAtTargetGoal.class) {
 			selector.addGoal(3, new BetterLeapAtTargetGoal<>(this, 0.4f));
 		} else if(task instanceof TargetGoal) {
 			selector.addGoal(2, ((TargetGoal) task).setUnseenMemoryTicks(200));
-		} else {
+		}else {
 			selector.addGoal(priority, task);
 		}
 	}

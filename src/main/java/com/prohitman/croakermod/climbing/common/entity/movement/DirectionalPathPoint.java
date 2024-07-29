@@ -26,6 +26,7 @@ public class DirectionalPathPoint extends Node {
 			Direction dir = DIRECTIONS[i];
 
 			if(AdvancedWalkNodeProcessor.unpackDirection(dir, packed)) {
+				//System.out.println("Some kind of direction exists, dir: " + dir.getName());
 				directionsSet.add(dir);
 			}
 		}

@@ -7,6 +7,7 @@ import java.util.stream.StreamSupport;
 
 import javax.annotation.Nullable;
 
+import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.climbing.common.CachedCollisionReader;
 import com.prohitman.croakermod.climbing.common.CollisionSmoothingUtil;
 import com.prohitman.croakermod.climbing.common.Matrix4f;
@@ -901,7 +902,7 @@ public abstract class ClimberEntityMixin extends PathfinderMob implements IClimb
 		if(forward != 0 || strafe != 0) {
 			float slipperiness = 0.91f;
 
-			if(this.onGround) {
+			if(this.isOnGround()) {
 				BlockPos offsetPos = new BlockPos(this.position()).relative(groundDirection.getLeft());
 				slipperiness = this.getBlockSlipperiness(offsetPos);
 			}
@@ -972,7 +973,7 @@ public abstract class ClimberEntityMixin extends PathfinderMob implements IClimb
 
 		float slipperiness = 0.91f;
 
-		if(this.onGround) {
+		if(this.isOnGround()) {
 			this.fallDistance = 0;
 
 			BlockPos offsetPos = new BlockPos(this.position()).relative(groundDirection.getLeft());

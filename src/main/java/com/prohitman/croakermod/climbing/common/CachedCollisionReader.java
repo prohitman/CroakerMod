@@ -79,11 +79,11 @@ public class CachedCollisionReader implements CollisionGetter {
 
 	@Override
 	public int getHeight() {
-		return collisionReader.getHeight();
+		return this.collisionReader.getHeight();
 	}
 
 	@Override
 	public int getMinBuildHeight() {
-		return collisionReader.getMinBuildHeight();
+		return this.collisionReader.getMinBuildHeight();
 	}
 }

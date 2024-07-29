@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 
+import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.climbing.common.entity.mob.IClimberEntity;
 import com.prohitman.croakermod.climbing.common.entity.mob.Orientation;
 import net.minecraft.core.BlockPos;
@@ -52,6 +53,7 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 	@Override
 	@Nullable
 	public Path createPath(BlockPos pos, int checkpointRange) {
+		//LogUtils.getLogger().trace("Creating path... " + pos);
 		return this.createPath(ImmutableSet.of(pos), 8, false, checkpointRange);
 	}
 
@@ -66,25 +68,38 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 		++this.tick;
 
 		if(this.hasDelayedRecomputation) {
+			//System.out.println("Recomputing Path");
 			this.recomputePath();
 		}
 
 		if(!this.isDone()) {
+			Node targetPoint1 = this.path.getNode(this.path.getNextNodeIndex());
+			//System.out.println("Target point acquired: " + targetPoint1);
 			if(this.canUpdatePath()) {
+				//System.out.println("Following path...");
 				this.followThePath();
 			} else if(this.path != null && !this.path.isDone()) {
 				Vec3 pos = this.getTempMobPos();
 				Vec3 targetPos = this.path.getNextEntityPos(this.mob);
-
+				//System.out.println("Advancing path");
 				if(pos.y > targetPos.y && !this.mob.isOnGround() && Mth.floor(pos.x) == Mth.floor(targetPos.x) && Mth.floor(pos.z) == Mth.floor(targetPos.z)) {
 					this.path.advance();
 				}
 			}
+/*			if(path == null){
+				System.out.println("Path null");
+			} else if (path.isDone()){
+				System.out.println("Path totally done");
+			}*/
+
+			//System.out.println("Path is done: " + this.isDone());
 
 			DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
 
 			if(!this.isDone()) {
 				Node targetPoint = this.path.getNode(this.path.getNextNodeIndex());
+
+				//System.out.println("Preparing setting move to position: " + targetPoint.asBlockPos());
 
 				Direction dir = null;
 
@@ -99,10 +114,13 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 				Vec3 targetPos = this.getExactPathingTarget(this.level, targetPoint.asBlockPos(), dir);
 
 				MoveControl moveController = this.mob.getMoveControl();
+				//System.out.println("bf setting want to: " + targetPoint.asBlockPos());
 
 				if(moveController instanceof ClimberMoveController && targetPoint instanceof DirectionalPathPoint && ((DirectionalPathPoint) targetPoint).getPathSide() != null) {
-					((ClimberMoveController) moveController).setMoveTo(targetPos.x, targetPos.y, targetPos.z, targetPoint.asBlockPos().relative(dir), ((DirectionalPathPoint) targetPoint).getPathSide(), this.speedModifier);
+					((ClimberMoveController<T>) moveController).setMoveTo(targetPos.x, targetPos.y, targetPos.z, targetPoint.asBlockPos().relative(dir), ((DirectionalPathPoint) targetPoint).getPathSide(), this.speedModifier);
 				} else {
+					//System.out.println("Should move bro to: " + targetPoint.asBlockPos());
+
 					moveController.setWantedPosition(targetPos.x, targetPos.y, targetPos.z, this.speedModifier);
 				}
 			}
@@ -160,7 +178,7 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 		for(int i = 4; i >= 0; i--) {
 			if(this.path.getNextNodeIndex() + i < this.path.getNodeCount()) {
 				Node currentTarget = this.path.getNode(this.path.getNextNodeIndex() + i);
-
+				//System.out.println("Current Target: " + currentTarget.asBlockPos());
 				double dx = Math.abs(currentTarget.x + (int) (this.mob.getBbWidth() + 1.0f) * 0.5f - this.mob.getX());
 				double dy = Math.abs(currentTarget.y - this.mob.getY());
 				double dz = Math.abs(currentTarget.z + (int) (this.mob.getBbWidth() + 1.0f) * 0.5f - this.mob.getZ());
@@ -178,7 +196,10 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 				}
 
 				if(isOnSameSideAsTarget && (isWaypointInReach || (i == 0 && this.mob.canCutCorner(this.path.getNextNode().type) && this.isNextTargetInLine(pos, sizeX, sizeY, sizeZ, 1 + i)))) {
+					//System.out.println("Is done pre." + this.isDone());
 					this.path.setNextNodeIndex(this.path.getNextNodeIndex() + 1 + i);
+					//System.out.println("Setting next node.");
+					//System.out.println("Is done post." + this.isDone());
 					break;
 				}
 			}
@@ -223,6 +244,8 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 				}
 			}
 		}
+
+		//LogUtils.getLogger().trace("Followed Path");
 
 		this.doStuckDetection(pos);
 	}

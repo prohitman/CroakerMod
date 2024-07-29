@@ -1,5 +1,6 @@
 package com.prohitman.croakermod.server;
 
+import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.CroakerMod;
 import com.prohitman.croakermod.server.entity.CroakerEntity;
 import net.minecraft.world.entity.MoverType;
@@ -20,6 +21,7 @@ import net.minecraftforge.fml.common.Mod;
 public class CommonForgeEvents{
     @SubscribeEvent
     public static void onProjectileHit(ProjectileImpactEvent event) {
+        //LogUtils.getLogger().trace(event.getEntity().level.getHeight() +" "+ event.getEntity().level.getMinBuildHeight());
         if (event.getRayTraceResult() instanceof EntityHitResult hitResult
                 && hitResult.getEntity() instanceof CroakerEntity croaker && croaker.isOnGround() && croaker.getIsBusy() && !event.getEntity().level.isClientSide) {
             if (event.getEntity() instanceof AbstractArrow arrow) {

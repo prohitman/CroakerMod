@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.climbing.common.entity.mob.IClimberEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -81,9 +82,13 @@ public class AdvancedGroundPathNavigator<T extends Mob & IClimberEntity> extends
 
 		Path path = super.createPath(adjustedWaypoints, padding, startAbove, checkpointRange);
 
-		if(path != null && path.getTarget() != null) {
-			this.checkpointRange = checkpointRange;
+		if(path != null) {
+            this.checkpointRange = checkpointRange;
+
+			//LogUtils.getLogger().trace("Path created successfully with target: " + path.getTarget() + getPath());
 		}
+
+		//System.out.println("Creating path: " + (path != null ? path.getTarget() + " " + path.getNodeCount(): "null"));
 
 		return path;
 	}
@@ -105,7 +110,7 @@ public class AdvancedGroundPathNavigator<T extends Mob & IClimberEntity> extends
 	@Override
 	protected void doStuckDetection(Vec3 entityPos) {
 		super.doStuckDetection(entityPos);
-
+		//LogUtils.getLogger().trace("Initiating stuck detection...");
 		if(this.checkObstructions && this.path != null && !this.path.isDone()) {
 			Vec3 target = this.path.getEntityPosAtNode(this.advancedPathFindingEntity, Math.min(this.path.getNodeCount() - 1, this.path.getNextNodeIndex() + 0));
 			Vec3 diff = target.subtract(entityPos);
@@ -181,6 +186,7 @@ public class AdvancedGroundPathNavigator<T extends Mob & IClimberEntity> extends
 
 			if(blocked) {
 				this.stuckCheckTicks++;
+				//System.out.println("Stuck detected");
 
 				if(this.stuckCheckTicks > this.advancedPathFindingEntity.getMaxStuckCheckTicks()) {
 					this.advancedPathFindingEntity.onPathingObstructed(facing);

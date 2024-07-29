@@ -34,7 +34,7 @@ public abstract class MobEntityMixin implements IMobEntityLivingTickHook, IMobEn
 	public void onTick() { }
 
 	@Shadow(prefix = "shadow$")
-	private void shadow$registerGoals() { }
+	protected void shadow$registerGoals() { }
 
 	@Redirect(method = "<init>*", at = @At(
 			value = "INVOKE",
