@@ -15,5 +15,7 @@ import net.minecraftforge.registries.RegistryObject;
 public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, CroakerMod.MODID);
 
-    public static final RegistryObject<EntityType<CroakerEntity>> CROAKER = ENTITY_TYPES.register("croaker", () -> EntityType.Builder.of(CroakerEntity::new, MobCategory.MONSTER).sized(2.25F, 2F).clientTrackingRange(20).build("croaker"));
+    public static final RegistryObject<EntityType<CroakerEntity>> CROAKER = ENTITY_TYPES.register("croaker", () -> EntityType.Builder.of(CroakerEntity::new, MobCategory.MONSTER)
+            .sized(2F, 2F)//2.25 2
+            .clientTrackingRange(20).build("croaker"));
 }

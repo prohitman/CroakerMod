@@ -10,6 +10,7 @@ import com.mojang.math.Vector3f;
 import com.prohitman.croakermod.climbing.common.entity.mob.IClimberEntity;
 import com.prohitman.croakermod.climbing.common.entity.mob.Orientation;
 import com.prohitman.croakermod.climbing.common.entity.mob.PathingTarget;
+import com.prohitman.croakermod.server.entity.CroakerEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -30,7 +31,7 @@ public class ClientEventHandlers {
 	public static void onPreRenderLiving(RenderLivingEvent.Pre<?, ?> event) {
 		LivingEntity entity = event.getEntity();
 
-		if(entity instanceof IClimberEntity) {
+		if(entity instanceof IClimberEntity && !(entity instanceof CroakerEntity)) {
 			IClimberEntity climber = (IClimberEntity) entity;
 
 			float partialTicks = event.getPartialTick();
@@ -39,7 +40,7 @@ public class ClientEventHandlers {
 			Orientation orientation = climber.getOrientation();
 			Orientation renderOrientation = climber.calculateOrientation(partialTicks);
 			climber.setRenderOrientation(renderOrientation);
-
+			//System.out.println("Pre Orientation: " + orientation + "render orientation: " + renderOrientation);
 			float verticalOffset = climber.getVerticalOffset(partialTicks);
 
 			float x = climber.getAttachmentOffset(Direction.Axis.X, partialTicks) - (float) renderOrientation.normal.x * verticalOffset;
@@ -58,7 +59,7 @@ public class ClientEventHandlers {
 	public static void onPostRenderLiving(RenderLivingEvent.Post<?, ?> event) {
 		LivingEntity entity = event.getEntity();
 
-		if(entity instanceof IClimberEntity) {
+		if(entity instanceof IClimberEntity && !(entity instanceof CroakerEntity)) {
 			IClimberEntity climber = (IClimberEntity) entity;
 
 			float partialTicks = event.getPartialTick();

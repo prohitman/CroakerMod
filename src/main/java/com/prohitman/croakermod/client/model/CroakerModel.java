@@ -69,6 +69,7 @@ public class CroakerModel extends AnimatedGeoModel<CroakerEntity> {
 
         IBone head = this.getAnimationProcessor().getBone("Head");
         IBone neck1 = this.getAnimationProcessor().getBone("Neck1");
+        IBone body = this.getAnimationProcessor().getBone("Body");
 
         if (head != null) {
             EntityModelData extraData = (EntityModelData) animationEvent.getExtraDataOfType(EntityModelData.class).get(0);

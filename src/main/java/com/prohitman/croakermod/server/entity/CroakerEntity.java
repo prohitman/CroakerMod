@@ -21,6 +21,7 @@ import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
 import net.minecraft.world.entity.animal.*;
@@ -44,15 +45,14 @@ import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.Optional;
 
-public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
+public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimatable {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
     private static final EntityDataAccessor<Boolean> BUSY = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> POUNCING = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
     public int jumpCooldown = 0;
     public CroakerEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        this.lookControl = new CroakerLookController();
-        this.maxUpStep = 1.25f;
+        this.maxUpStep = 1f;
         this.xpReward = 25;
     }
 
@@ -75,7 +75,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
                 .add(Attributes.MOVEMENT_SPEED, (double)0.3F)
                 .add(Attributes.ATTACK_DAMAGE, 10.0D)
                 .add(Attributes.ARMOR, 5.0D)
-                .add(Attributes.MAX_HEALTH, 50.0D);
+                .add(Attributes.MAX_HEALTH, 5.0D);
     }
 
     public boolean getIsBusy(){
@@ -119,7 +119,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
 
         if(!this.level.isClientSide){
             if(jumpCooldown != 0){
-                jumpCooldown--;
+               jumpCooldown--;
             }
         }
     }
@@ -147,7 +147,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
     STRAFING
      */
 
-    @Override
+/*    @Override
     public boolean hurt(DamageSource pSource, float pAmount) {
         if(pSource.getDirectEntity() instanceof Player player && this.isOnGround() && this.random.nextInt(2) == 0){
             boolean left;
@@ -172,7 +172,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
             return false;
         }
         return super.hurt(pSource, pAmount);
-    }
+    }*/
 
     /*
     JUMPING
@@ -206,7 +206,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
     /*
     LOOK/MOVE CONTROLLER
      */
-    public class CroakerLookController extends LookControl {
+/*    public class CroakerLookController extends LookControl {
         public CroakerLookController() {
             super(CroakerEntity.this);
         }
@@ -214,7 +214,7 @@ public class CroakerEntity extends PathfinderMob implements Enemy, IAnimatable {
         protected boolean resetXRotOnTick() {
             return !CroakerEntity.this.getIsPouncing();
         }
-    }
+    }*/
 
     @Override
     public void registerControllers(AnimationData animationData) {
