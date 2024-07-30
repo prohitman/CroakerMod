@@ -923,6 +923,7 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
                 Vec3 movementDir = new Vec3(this.getX() - px, this.getY() - py, this.getZ() - pz).normalize();
 
                 this.setBoundingBox(aabb);
+                System.out.println("Movement vector, Resetting position...");
                 this.resetPositionToBB();
                 this.setDeltaMovement(motion);
 
@@ -933,6 +934,7 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
                 Vec3 collisionNormal = new Vec3(Math.abs(this.getX() - px - probeVector.x) > 0.000001D ? Math.signum(-probeVector.x) : 0, Math.abs(this.getY() - py - probeVector.y) > 0.000001D ? Math.signum(-probeVector.y) : 0, Math.abs(this.getZ() - pz - probeVector.z) > 0.000001D ? Math.signum(-probeVector.z) : 0).normalize();
 
                 this.setBoundingBox(aabb);
+                System.out.println("Collision normal, Resetting position...");
                 this.resetPositionToBB();
                 this.setDeltaMovement(motion);
 
@@ -1022,6 +1024,8 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
 
             //Attaching failed, fall back to previous position
             if(!this.onGround) {
+                System.out.println("Attaching failed, Resetting position...");
+
                 this.setBoundingBox(aabb);
                 this.resetPositionToBB();
                 this.setDeltaMovement(motion);

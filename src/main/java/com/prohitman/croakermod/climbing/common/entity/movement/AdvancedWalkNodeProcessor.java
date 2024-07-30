@@ -107,9 +107,12 @@ public class AdvancedWalkNodeProcessor extends WalkNodeEvaluator {
 			throw new IllegalArgumentException("Only mobs that extend " + IAdvancedPathFindingEntity.class.getSimpleName() + " are supported. Received: " + pMob.getClass().getName());
 		}
 
-		this.pathingSizeOffsetX = Math.max(1, Mth.floor(this.mob.getBbWidth() / 2.0f + 1));
-		this.pathingSizeOffsetY = Math.max(1, Mth.floor(this.mob.getBbHeight() + 1));
-		this.pathingSizeOffsetZ = Math.max(1, Mth.floor(this.mob.getBbWidth() / 2.0f + 1));
+		//this.pathingSizeOffsetX = Math.max(1, Mth.floor(this.mob.getBbWidth() / 2.0f + 1));
+		//this.pathingSizeOffsetY = Math.max(1, Mth.floor(this.mob.getBbHeight() + 1));
+		//this.pathingSizeOffsetZ = Math.max(1, Mth.floor(this.mob.getBbWidth() / 2.0f + 1));
+		this.pathingSizeOffsetX = 1;
+		this.pathingSizeOffsetY = 1;
+		this.pathingSizeOffsetZ = 1;
 
 		this.pathableFacingsArray = this.pathableFacings.toArray(new Direction[0]);
 	}

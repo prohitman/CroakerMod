@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.climbing.common.entity.mob.IClimberEntity;
 import com.prohitman.croakermod.climbing.common.entity.mob.Orientation;
+import com.prohitman.croakermod.server.entity.CroakerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.DebugPackets;
@@ -175,7 +176,7 @@ public class AdvancedClimberPathNavigator<T extends Mob & IClimberEntity> extend
 		this.verticalFacing = Direction.getNearest((float) upVector.x, (float) upVector.y, (float) upVector.z);
 
 		//Look up to 4 nodes ahead so it doesn't backtrack on positions with multiple path sides when changing/updating path
-		for(int i = 4; i >= 0; i--) {
+		for(int i = this.mob instanceof CroakerEntity ? 8 : 4; i >= 0; i--) {
 			if(this.path.getNextNodeIndex() + i < this.path.getNodeCount()) {
 				Node currentTarget = this.path.getNode(this.path.getNextNodeIndex() + i);
 				//System.out.println("Current Target: " + currentTarget.asBlockPos());

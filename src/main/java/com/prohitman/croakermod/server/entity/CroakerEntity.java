@@ -124,6 +124,15 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         }
     }
 
+    @Override
+    public int getMaxHeadYRot() {
+        return 45;
+    }
+
+    @Override
+    public int getMaxHeadXRot() {
+        return 45;
+    }
 
     /*
     ATTACKING
