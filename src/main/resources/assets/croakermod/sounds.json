@@ -1,0 +1,18 @@
+{
+  "croaker_ambient": {
+    "subtitles": "sounds.croakermod.coraker_ambient",
+    "sounds": [
+
+    ]
+  },"croaker_hurt": {
+  "subtitles": "sounds.croakermod.coraker_ambient",
+  "sounds": [
+
+  ]
+  },"croaker_death": {
+    "subtitles": "sounds.croakermod.coraker_ambient",
+    "sounds": [
+
+    ]
+  }
+}

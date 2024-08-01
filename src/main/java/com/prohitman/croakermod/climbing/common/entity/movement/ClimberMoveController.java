@@ -247,7 +247,7 @@ public class ClimberMoveController<T extends Mob & IClimberEntity> extends MoveC
 					float rx = (float) orientation.localZ.dot(targetDir);
 					float ry = (float) orientation.localX.dot(targetDir);
 
-					this.mob.setYRot(this.rotlerp(this.mob.getYRot(), 270.0f - (float) Math.toDegrees(Mth.atan2(rx, ry)), 45f));
+					this.mob.setYRot(this.rotlerp(this.mob.getYRot(), 270.0f - (float) Math.toDegrees(Mth.atan2(rx, ry)), 45));
 
 					if (jumpDir == null && this.side != null && targetDist < 0.1D && groundDir == this.side.getOpposite()) {
 						jumpDir = new Vec3(this.side.getStepX(), this.side.getStepY(), this.side.getStepZ());

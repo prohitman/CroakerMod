@@ -3,8 +3,10 @@ package com.prohitman.croakermod;
 import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.climbing.common.CommonSetup;
 import com.prohitman.croakermod.climbing.common.Config;
+import com.prohitman.croakermod.core.ModBiomeModifiers;
 import com.prohitman.croakermod.core.ModEntities;
 import com.prohitman.croakermod.core.ModItems;
+import com.prohitman.croakermod.core.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -44,6 +46,8 @@ public class CroakerMod
 
         ModItems.ITEMS.register(modEventBus);
         ModEntities.ENTITY_TYPES.register(modEventBus);
+        ModBiomeModifiers.BIOME_MODIFIER_SERIALIZERS.register(modEventBus);
+        ModSounds.SOUND_EVENTS.register(modEventBus);
 
         modEventBus.addListener(this::onCommonSetup);
         MinecraftForge.EVENT_BUS.register(this);

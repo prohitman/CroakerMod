@@ -16,20 +16,25 @@ public class CPounceGoal extends JumpGoal {
         this.croaker = entity;
     }
     public boolean canUse() {
+        System.out.println("Called can use.");
         if(croaker.jumpCooldown != 0){
+            System.out.println("Cooldown active");
             return false;
         }
         if(!croaker.isOnGround()){
+            System.out.println("is not on ground");
+
             return false;
         }
 
         LivingEntity livingentity = croaker.getTarget();
         if (livingentity != null && livingentity.isAlive()) {
             double distance = croaker.distanceTo(livingentity);
-            if(distance <= 4 || distance >= 10){
+            if(distance <= 2 || distance >= 15){
                 return false;
             }
             if (livingentity.getMotionDirection() != livingentity.getDirection()) {
+                System.out.println("out bc of motion dirs");
                 return false;
             } else {
                 boolean flag = CroakerEntity.isPathClear(croaker, livingentity);
@@ -53,10 +58,11 @@ public class CPounceGoal extends JumpGoal {
         }*/
         LivingEntity livingentity = croaker.getTarget();
         if (livingentity != null && livingentity.isAlive()) {
-/*            double distance = croaker.distanceTo(livingentity);
+            double distance = croaker.distanceTo(livingentity);
+            System.out.println("Distance from target: " + distance);
             if(distance <= 2 || distance >= 15){
                 return false;
-            }*/
+            }
             double d0 = croaker.getDeltaMovement().y;
             return (!(d0 * d0 < (double)0.05F) || !(Math.abs(croaker.getXRot()) < 15.0F) || !croaker.isOnGround());
         } else {
@@ -80,10 +86,10 @@ public class CPounceGoal extends JumpGoal {
         if (livingentity != null) {
             croaker.getLookControl().setLookAt(livingentity, 60.0F, 30.0F);
             Vec3 vec3 = (new Vec3(livingentity.getX() - croaker.getX(), livingentity.getY() - croaker.getY(), livingentity.getZ() - croaker.getZ())).normalize();
-            double d0 = Mth.nextDouble(croaker.getRandom(), 0.1d, 0.15d);
-            double d1 = Mth.nextDouble(croaker.getRandom(), 0, 0.4d);
+            double d0 = Mth.nextDouble(croaker.getRandom(), 0.15d, 0.3d);
+            double d1 = Mth.nextDouble(croaker.getRandom(), 0, 0.35d);
 
-            croaker.setDeltaMovement(croaker.getDeltaMovement().add(vec3.x * 0.9D + d0, 1.1D + d1, vec3.z * 0.9D + d0));
+            croaker.setDeltaMovement(vec3.x * 0.9D * 1.5 + d0, 1.1D * 1.15 + d1, vec3.z * 0.9D * 1.5 + d0);
         }
 
         croaker.getNavigation().stop();

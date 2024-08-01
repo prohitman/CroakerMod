@@ -3,6 +3,7 @@ package com.prohitman.croakermod.climbing.common.entity.movement;
 import com.mojang.logging.LogUtils;
 import com.prohitman.croakermod.climbing.common.entity.mob.IClimberEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -45,6 +46,17 @@ public class BetterSpiderPathNavigator<T extends Mob & IClimberEntity> extends A
 			this.speedModifier = pSpeed;
 			return true;
 		}
+	}
+
+	@Override
+	public boolean isStableDestination(BlockPos pPos) {
+		for(Direction direction : Direction.values()){
+			BlockPos pos = pPos.relative(direction);
+			if(this.level.getBlockState(pos).isSolidRender(this.level, pos)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

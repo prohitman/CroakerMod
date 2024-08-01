@@ -122,7 +122,7 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
 
     public AbstractClimberMob(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        this.maxUpStep = 0.1f;
+        this.maxUpStep = 1f;
         this.orientation = this.calculateOrientation(1);
         this.groundDirecton = this.getGroundDirection();
         this.moveControl = new ClimberMoveController<>(this);
@@ -677,9 +677,20 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
         this.yBodyRot = Mth.wrapDegrees(this.yBodyRot + yawDelta);
         this.yBodyRotO = this.wrapAngleInRange(this.yBodyRotO/* + yawDelta*/, this.yBodyRot);
 
-        this.setYHeadRot(Mth.wrapDegrees(this.getYHeadRot() + yawDelta));
-        this.yHeadRotO = this.wrapAngleInRange(this.yHeadRotO/* + yawDelta*/, this.getYHeadRot());
+        float yawHead = this.getYHeadRot();
+
+        //System.out.println("YHead Rot pre: " + yawHead);
+/*        if(yawHead >= 0){
+            yawHead = Mth.clamp(yawHead, 0, 180);
+        } else {
+            yawHead = Mth.clamp(yawHead, -180, 0);
+        }*/
+
+        this.setYHeadRot(Mth.wrapDegrees(yawHead + yawDelta));
+        this.yHeadRotO = this.wrapAngleInRange(this.yHeadRotO/* + yawDelta*/, yawHead);
         this.lyHeadRot = Mth.wrapDegrees(this.lyHeadRot + yawDelta);
+
+        //System.out.println("YHead Rot post: " + yawHead);
 
         this.setXRot(Mth.wrapDegrees(this.getXRot() + pitchDelta));
         this.xRotO = this.wrapAngleInRange(this.xRotO/* + pitchDelta*/, this.getXRot());
@@ -923,7 +934,7 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
                 Vec3 movementDir = new Vec3(this.getX() - px, this.getY() - py, this.getZ() - pz).normalize();
 
                 this.setBoundingBox(aabb);
-                System.out.println("Movement vector, Resetting position...");
+                //System.out.println("Movement vector, Resetting position...");
                 this.resetPositionToBB();
                 this.setDeltaMovement(motion);
 
@@ -934,7 +945,7 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
                 Vec3 collisionNormal = new Vec3(Math.abs(this.getX() - px - probeVector.x) > 0.000001D ? Math.signum(-probeVector.x) : 0, Math.abs(this.getY() - py - probeVector.y) > 0.000001D ? Math.signum(-probeVector.y) : 0, Math.abs(this.getZ() - pz - probeVector.z) > 0.000001D ? Math.signum(-probeVector.z) : 0).normalize();
 
                 this.setBoundingBox(aabb);
-                System.out.println("Collision normal, Resetting position...");
+                //System.out.println("Collision normal, Resetting position...");
                 this.resetPositionToBB();
                 this.setDeltaMovement(motion);
 
@@ -1024,7 +1035,7 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
 
             //Attaching failed, fall back to previous position
             if(!this.onGround) {
-                System.out.println("Attaching failed, Resetting position...");
+                //System.out.println("Attaching failed, Resetting position...");
 
                 this.setBoundingBox(aabb);
                 this.resetPositionToBB();

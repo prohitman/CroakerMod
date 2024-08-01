@@ -2,6 +2,7 @@ package com.prohitman.croakermod.server.entity;
 
 import com.prohitman.croakermod.server.entity.goals.*;
 import jdk.jfr.Enabled;
+import net.minecraft.client.model.SpiderModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -10,9 +11,13 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -24,6 +29,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.animal.frog.Frog;
 import net.minecraft.world.entity.monster.*;
@@ -32,11 +38,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.manager.AnimationData;
@@ -52,30 +62,33 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     public int jumpCooldown = 0;
     public CroakerEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        this.maxUpStep = 1f;
         this.xpReward = 25;
     }
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new CRandomLookAroundGoal(this));
-        this.goalSelector.addGoal(1, new CStrollGoal(this, 1.0D, 0.25f));
-       // this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.1d, true));
+        this.goalSelector.addGoal(1, new CStrollGoal(this, 1.0D, 0.001F));
+        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(2, new CAttackGoal(this, 1.15d, true));
 
-        //this.goalSelector.addGoal(3, new CPounceGoal(this));
+        this.goalSelector.addGoal(6, new CLookAtPlayerGoal(this, Player.class, 50, 0.01f));
+        this.goalSelector.addGoal(6, new FollowPlayerGoal(this, 0.8d, 15, 35));
 
-        this.goalSelector.addGoal(8, new CLookAtPlayerGoal(this, Player.class, 50, 0.01f));
-        //this.goalSelector.addGoal(8, new FollowPlayerGoal(this, 0.85d, 10, 35));
-
-        this.targetSelector.addGoal(8, new NearestAttackableTargetGoal<>(this, Player.class, false));
+        this.targetSelector.addGoal(7, new NearestAttackableTargetGoal<>(this, Player.class, false));
+        this.goalSelector.addGoal(8, new CPounceGoal(this));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                .add(Attributes.FOLLOW_RANGE, 100D)
+                .add(Attributes.FOLLOW_RANGE, 100)
                 .add(Attributes.MOVEMENT_SPEED, (double)0.3F)
                 .add(Attributes.ATTACK_DAMAGE, 10.0D)
                 .add(Attributes.ARMOR, 5.0D)
                 .add(Attributes.MAX_HEALTH, 5.0D);
+    }
+
+    public static boolean checkCroakerSpawnRules(EntityType<? extends PathfinderMob> pAnimal, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.FROGS_SPAWNABLE_ON);
     }
 
     public boolean getIsBusy(){
@@ -121,17 +134,36 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
             if(jumpCooldown != 0){
                jumpCooldown--;
             }
+
+            if(this.getHealth() < 0.3 * this.getMaxHealth() && this.getTarget() != null && this.getRandom().nextBoolean()){
+                double distance = this.distanceTo(this.getTarget());
+                if(distance <= 4){
+                    Vec3 vec3 = DefaultRandomPos.getPosAway(this, 16, 7, this.getTarget().position());
+
+                    if(vec3 != null){
+                        Path path = this.getNavigation().createPath(vec3.x, vec3.y, vec3.z, 0);
+                        if(path != null){
+                            this.getNavigation().moveTo(path, 1.2);
+                        }
+                    }
+                }
+            }
         }
     }
 
     @Override
     public int getMaxHeadYRot() {
-        return 45;
+        return 60;
     }
 
     @Override
     public int getMaxHeadXRot() {
-        return 45;
+        return 35;
+    }
+
+    @Override
+    public int getHeadRotSpeed() {
+        return 8;
     }
 
     /*
@@ -156,7 +188,7 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     STRAFING
      */
 
-/*    @Override
+    @Override
     public boolean hurt(DamageSource pSource, float pAmount) {
         if(pSource.getDirectEntity() instanceof Player player && this.isOnGround() && this.random.nextInt(2) == 0){
             boolean left;
@@ -181,7 +213,7 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
             return false;
         }
         return super.hurt(pSource, pAmount);
-    }*/
+    }
 
     /*
     JUMPING
@@ -193,11 +225,11 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         double d2 = d0 / d1;
         int i = 6;
 
-        for(int j = 0; j < 7; ++j) {
+        for(int j = 0; j < 12; ++j) {
             double d3 = d2 == 0.0D ? 0.0D : d0 * (double)((float)j / 6.0F);
             double d4 = d2 == 0.0D ? d1 * (double)((float)j / 6.0F) : d3 / d2;
 
-            for(int k = 1; k < 5; ++k) {
+            for(int k = 1; k < 8; ++k) {
                 if (!pFox.level.getBlockState(new BlockPos(pFox.getX() + d4, pFox.getY() + (double)k, pFox.getZ() + d3)).getMaterial().isReplaceable()) {
                     return false;
                 }
@@ -230,6 +262,11 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
 
     }
 
+    @Override
+    public double getFluidJumpThreshold() {
+        return 1.25;
+    }
+
     public boolean canBreatheUnderwater() {
         return true;
     }
@@ -243,6 +280,11 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     @Override
     public boolean isPersistenceRequired() {
         return true;
+    }
+
+    @Override
+    public boolean isPushedByFluid(FluidType type) {
+        return false;
     }
 
     @Nullable

@@ -3,6 +3,10 @@ package com.prohitman.croakermod.server.entity.goals;
 import com.prohitman.croakermod.server.entity.CroakerEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.phys.Vec3;
+
+import javax.annotation.Nullable;
 
 public class CStrollGoal extends WaterAvoidingRandomStrollGoal {
     private final CroakerEntity mob;
@@ -25,5 +29,15 @@ public class CStrollGoal extends WaterAvoidingRandomStrollGoal {
             return false;
         }
         return super.canContinueToUse();
+    }
+
+    @Nullable
+    protected Vec3 getPosition() {
+        if (this.mob.isInWaterOrBubble()) {
+            Vec3 vec3 = ClimbRandomPos.getPos(this.mob, 15, 15);
+            return vec3 == null ? super.getPosition() : vec3;
+        } else {
+            return this.mob.getRandom().nextFloat() >= this.probability ? ClimbRandomPos.getPos(this.mob, 10, 10) : super.getPosition();
+        }
     }
 }
