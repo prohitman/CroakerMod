@@ -35,52 +35,32 @@ public class CroakerModel extends AnimatedGeoModel<CroakerEntity> {
     public void setCustomAnimations(CroakerEntity animatable, int instanceId, AnimationEvent animationEvent) {
         super.setCustomAnimations(animatable, instanceId, animationEvent);
 
-/*        IBone head = this.getAnimationProcessor().getBone("Head");
-        IBone neck1 = this.getAnimationProcessor().getBone("Neck1");
-        IBone body = this.getAnimationProcessor().getBone("Body");
-
-        EntityModelData extraData = (EntityModelData) animationEvent.getExtraDataOfType(EntityModelData.class).get(0);
-
-        if (head != null) {
-            float headYaw = extraData.netHeadYaw;
-            float headPitch = extraData.headPitch;
-
-            // Determine the target pitch when climbing or not climbing
-            float targetPitch = animatable.isClimbing() ? 45.0F : 0.0F;
-
-            // Interpolate the pitch angle smoothly over time
-            float currentPitch = head.getRotationX() * (180F / (float) Math.PI); // Convert radians to degrees
-            headTilt = Mth.lerp(animationEvent.getPartialTick(), headTilt, targetPitch); // Use a fixed lerp factor for smooth transition
-            if(headTilt != 0){
-                System.out.println(headTilt);
-            }
-
-            // Apply the interpolated rotation to the head and neck
-            head.setRotationY((headYaw / 2) * ((float) Math.PI / 180F)); // Converting degrees to radians
-            head.setRotationX((headPitch + headTilt / 2) * ((float) Math.PI / 180F)); // Converting degrees to radians
-
-            if (neck1 != null) {
-                neck1.setRotationY(headYaw * ((float) Math.PI / 180F)); // Converting degrees to radians
-                neck1.setRotationX(headPitch + headTilt * ((float) Math.PI / 180F)); // Converting degrees to radians
-            }
-
-        }*/
-
         IBone head = this.getAnimationProcessor().getBone("Head");
         IBone neck1 = this.getAnimationProcessor().getBone("Neck1");
-        IBone body = this.getAnimationProcessor().getBone("Body");
 
         if (head != null) {
             EntityModelData extraData = (EntityModelData) animationEvent.getExtraDataOfType(EntityModelData.class).get(0);
 
-            //System.out.println("Model Head Y Rot Pre: " + head.getRotationY());
+            float normalizedHeadYaw = extraData.netHeadYaw % 360;
+            if (normalizedHeadYaw > 180) {
+                normalizedHeadYaw -= 360;
+            } else if (normalizedHeadYaw < -180) {
+                normalizedHeadYaw += 360;
+            }
 
-            head.setRotationY(((extraData.netHeadYaw / 2)) * ((float)Math.PI / 270F));
-            head.setRotationX(((extraData.headPitch / 2)) * ((float)Math.PI / 270F));
-            //System.out.println("Model Head Y Rot Post: " + head.getRotationY());
+            float normalizedHeadPitch = extraData.headPitch % 360;
+            if(normalizedHeadPitch > 180){
+                normalizedHeadPitch -= 180;
+            } else if(normalizedHeadPitch < -180){
+                normalizedHeadPitch += 360;
+            }
+
+            head.setRotationY((((normalizedHeadYaw) / 2)) * ((float)Math.PI / 270));
+            head.setRotationX((((normalizedHeadPitch) / 2)) * ((float)Math.PI / 270));
+
             if(neck1 != null){
-                neck1.setRotationY(((extraData.netHeadYaw)) * ((float)Math.PI / 270F));
-                neck1.setRotationX(((extraData.headPitch)) * ((float)Math.PI / 270F));
+                neck1.setRotationY(((normalizedHeadYaw)) * ((float)Math.PI / 270));
+                neck1.setRotationX(((normalizedHeadPitch)) * ((float)Math.PI / 270));
             }
         }
     }

@@ -58,12 +58,6 @@ public class ClimbRandomPos {
     @Nullable
     public static BlockPos movePosUpOutOfSolid(PathfinderMob pMob, BlockPos pPos) {
         pPos = RandomPos.moveUpOutOfSolid(pPos, pMob.level.getMaxBuildHeight(), (blockPos) -> {
-            /*for(Direction direction : Direction.values()){
-                BlockPos pos = blockPos.relative(direction);
-                if(GoalUtils.isSolid(pMob, pos)){
-                    return true;
-                }
-            }*/
             return GoalUtils.isSolid(pMob, blockPos);
         });
         return !GoalUtils.isWater(pMob, pPos) && !GoalUtils.hasMalus(pMob, pPos) ? pPos : null;

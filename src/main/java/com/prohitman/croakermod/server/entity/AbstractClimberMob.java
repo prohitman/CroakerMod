@@ -677,20 +677,9 @@ public abstract class AbstractClimberMob extends PathfinderMob implements IClimb
         this.yBodyRot = Mth.wrapDegrees(this.yBodyRot + yawDelta);
         this.yBodyRotO = this.wrapAngleInRange(this.yBodyRotO/* + yawDelta*/, this.yBodyRot);
 
-        float yawHead = this.getYHeadRot();
-
-        //System.out.println("YHead Rot pre: " + yawHead);
-/*        if(yawHead >= 0){
-            yawHead = Mth.clamp(yawHead, 0, 180);
-        } else {
-            yawHead = Mth.clamp(yawHead, -180, 0);
-        }*/
-
-        this.setYHeadRot(Mth.wrapDegrees(yawHead + yawDelta));
-        this.yHeadRotO = this.wrapAngleInRange(this.yHeadRotO/* + yawDelta*/, yawHead);
+        this.setYHeadRot(Mth.wrapDegrees(this.getYHeadRot() + yawDelta));
+        this.yHeadRotO = this.wrapAngleInRange(this.yHeadRotO/* + yawDelta*/, this.getYHeadRot());
         this.lyHeadRot = Mth.wrapDegrees(this.lyHeadRot + yawDelta);
-
-        //System.out.println("YHead Rot post: " + yawHead);
 
         this.setXRot(Mth.wrapDegrees(this.getXRot() + pitchDelta));
         this.xRotO = this.wrapAngleInRange(this.xRotO/* + pitchDelta*/, this.getXRot());

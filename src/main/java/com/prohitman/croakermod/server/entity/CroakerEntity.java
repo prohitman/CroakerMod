@@ -154,16 +154,16 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     @Override
     public int getMaxHeadYRot() {
         return 60;
-    }
+    }//75
 
     @Override
     public int getMaxHeadXRot() {
-        return 35;
-    }
+        return 30;
+    }//40
 
     @Override
     public int getHeadRotSpeed() {
-        return 8;
+        return 10;
     }
 
     /*

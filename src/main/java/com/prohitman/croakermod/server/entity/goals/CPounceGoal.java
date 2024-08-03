@@ -16,7 +16,7 @@ public class CPounceGoal extends JumpGoal {
         this.croaker = entity;
     }
     public boolean canUse() {
-        System.out.println("Called can use.");
+        //System.out.println("Called can use.");
         if(croaker.jumpCooldown != 0){
             System.out.println("Cooldown active");
             return false;
