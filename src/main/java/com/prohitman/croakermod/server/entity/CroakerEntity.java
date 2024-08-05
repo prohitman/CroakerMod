@@ -2,7 +2,9 @@ package com.prohitman.croakermod.server.entity;
 
 import com.prohitman.croakermod.server.entity.goals.*;
 import jdk.jfr.Enabled;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.SpiderModel;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -53,6 +55,7 @@ import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.shadowed.eliotlash.mclib.math.functions.limit.Min;
 
 import java.util.Optional;
 
@@ -61,9 +64,13 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     private static final EntityDataAccessor<Boolean> BUSY = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> POUNCING = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> STALKING = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> CROAKING = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
 
     public int jumpCooldown = 0;
     public boolean shouldTickPounce = false;
+    private boolean loadedCroakSoundInstance = false;
+    private CroakingSoundInstance croakingSound;
+
     public CroakerEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.xpReward = 25;
@@ -74,6 +81,7 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         this.goalSelector.addGoal(1, new CStrollGoal(this, 1.0D, 0.001F));
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new CAttackGoal(this, 1.3d, true));
+        this.goalSelector.addGoal(3, new CroakingGoal(this));
         this.goalSelector.addGoal(6, new CLookAtPlayerGoal(this, Player.class, 50, 0.01f));
         this.goalSelector.addGoal(6, new FollowPlayerGoal(this, 0.8d, 15, 35));
 
@@ -106,10 +114,16 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         entityData.set(POUNCING, is_pouncing);
     }
     public boolean getIsStalking(){
-        return entityData.get(BUSY);
+        return entityData.get(STALKING);
     }
     public void setStalking(boolean is_stalking){
         entityData.set(STALKING, is_stalking);
+    }
+    public boolean getIsCroaking(){
+        return entityData.get(CROAKING);
+    }
+    public void setCroaking(boolean is_croaking){
+        entityData.set(CROAKING, is_croaking);
     }
 
     @Override
@@ -118,6 +132,8 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         this.entityData.define(BUSY, false);
         this.entityData.define(POUNCING, false);
         this.entityData.define(STALKING, false);
+        this.entityData.define(CROAKING, false);
+
     }
 
     @Override
@@ -126,6 +142,8 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         pCompound.putBoolean("busy", this.getIsBusy());
         pCompound.putBoolean("pouncing", this.getIsPouncing());
         pCompound.putBoolean("stalking", this.getIsStalking());
+        pCompound.putBoolean("croaking", this.getIsCroaking());
+        pCompound.putBoolean("soundLoaded", this.loadedCroakSoundInstance);
     }
 
     @Override
@@ -134,6 +152,8 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         this.setBusy(pCompound.getBoolean("busy"));
         this.setPouncing(pCompound.getBoolean("pouncing"));
         this.setStalking(pCompound.getBoolean("stalking"));
+        this.setCroaking(pCompound.getBoolean("croaking"));
+        this.loadedCroakSoundInstance = pCompound.getBoolean("soundLoaded");
     }
 
     @Override
@@ -145,7 +165,7 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
                jumpCooldown--;
             }
 
-            Player player = this.getLevel().getNearestPlayer(this, 50);
+            Player player = this.getLevel().getNearestPlayer(this.getX(), this.getY(), this.getZ(), 50, true);
             if(player != null){
                 this.setBusy(true);
                 if(this.tickCount % 20 == 0){
@@ -182,6 +202,15 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
                     this.pounceStop();
                     this.shouldTickPounce = false;
                 }
+            }
+        } else {
+            if(this.getIsCroaking() && !this.loadedCroakSoundInstance){
+                croakingSound = new CroakingSoundInstance(this);
+                Minecraft.getInstance().getSoundManager().play(croakingSound);
+                this.loadedCroakSoundInstance = true;
+            } else if(!this.getIsCroaking() && this.loadedCroakSoundInstance){
+                Minecraft.getInstance().getSoundManager().stop(croakingSound);
+                this.loadedCroakSoundInstance = false;
             }
         }
     }
@@ -393,6 +422,9 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     @Nullable
     @Override
     protected SoundEvent getAmbientSound() {
+        if(this.getIsCroaking()){
+            return super.getAmbientSound();
+        }
         return SoundEvents.FROG_AMBIENT;
     }
 
