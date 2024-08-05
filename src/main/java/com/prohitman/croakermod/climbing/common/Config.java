@@ -28,7 +28,7 @@ public class Config {
 				.defineInRange("croakerMaxSpawnSize", 1, 0, 20);
 
 		PREVENT_CLIMBING_IN_RAIN = builder.comment("Whether spiders should be unable to climb when exposed to rain")
-				.define("prevent_climbing_in_rain", true);
+				.define("prevent_climbing_in_rain", false);
 
 		PATH_FINDER_DEBUG_PREVIEW = builder
 				.worldRestart()

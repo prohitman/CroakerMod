@@ -15,7 +15,7 @@ public class ModSounds {
     public static final RegistryObject<SoundEvent> CROAKER_AMBIENT_STALKING = registerSoundEvents("croaker_ambient_stalking");
     public static final RegistryObject<SoundEvent> CROAKER_CROAKING = registerSoundEvents("croaker_croaking");
     public static final RegistryObject<SoundEvent> CROAKER_ATTACK = registerSoundEvents("croaker_attack");
-
+    public static final RegistryObject<SoundEvent> CROAKER_STEP = registerSoundEvents("croaker_step");
     public static final RegistryObject<SoundEvent> CROAKER_HURT = registerSoundEvents("croaker_hurt");
     public static final RegistryObject<SoundEvent> CROAKER_DEATH = registerSoundEvents("croaker_death");
 

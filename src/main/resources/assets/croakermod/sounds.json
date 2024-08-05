@@ -1,16 +1,45 @@
 {
   "croaker_ambient": {
-    "subtitles": "sounds.croakermod.coraker_ambient",
+    "subtitles": "sounds.croakermod.croaker_ambient",
     "sounds": [
-
+        "croakermod:croaker_breathing_1",
+        "croakermod:croaker_breathing_2",
+        "croakermod:croaker_single_croak"
+    ]
+  },"croaker_ambient_stalking": {
+    "subtitles": "sounds.croakermod.croaker_ambient_stalking",
+    "sounds": [
+      "croakermod:croaker_cry_lurking_1",
+      "croakermod:croaker_cry_lurking_2",
+      "croakermod:croaker_cry_sob"
+    ]
+  },"croaker_croaking": {
+    "subtitles": "sounds.croakermod.croaker_croaking",
+    "sounds": [
+      "croakermod:croaker_cry_1",
+      "croakermod:croaker_cry_2",
+      "croakermod:croaker_clicking",
+      "croakermod:croaker_breath"
+    ]
+  },"croaker_attack": {
+    "subtitles": "sounds.croakermod.croaker_attack",
+    "sounds": [
+      "croakermod:croaker_attack_1",
+      "croakermod:croaker_attack_2"
+    ]
+  },"croaker_step": {
+    "subtitles": "sounds.croakermod.croaker_step",
+    "sounds": [
+      "croakermod:croaker_step"
     ]
   },"croaker_hurt": {
-  "subtitles": "sounds.croakermod.coraker_ambient",
-  "sounds": [
-
-  ]
+    "subtitles": "sounds.croakermod.croaker_hurt",
+    "sounds": [
+      "croakermod:croaker_hurt_1",
+      "croakermod:croaker_hurt_2"
+    ]
   },"croaker_death": {
-    "subtitles": "sounds.croakermod.coraker_ambient",
+    "subtitles": "sounds.croakermod.croaker_death",
     "sounds": [
 
     ]
