@@ -74,6 +74,7 @@ public class FollowPlayerGoal extends Goal {
         this.oldWaterCost = this.mob.getPathfindingMalus(BlockPathTypes.WATER);
         this.mob.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         ((CroakerEntity)this.mob).setBusy(true);
+        ((CroakerEntity)this.mob).setStalking(true);
     }
 
     /**
@@ -84,6 +85,7 @@ public class FollowPlayerGoal extends Goal {
         this.navigation.stop();
         this.mob.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
         ((CroakerEntity)this.mob).setBusy(false);
+        ((CroakerEntity)this.mob).setStalking(false);
     }
 
     /**

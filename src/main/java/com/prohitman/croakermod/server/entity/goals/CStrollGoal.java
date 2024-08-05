@@ -17,7 +17,7 @@ public class CStrollGoal extends WaterAvoidingRandomStrollGoal {
 
     @Override
     public boolean canUse() {
-        if(this.mob.getIsBusy()){
+        if(this.mob.getIsBusy() || this.mob.getTarget() != null){
             return false;
         }
         return super.canUse();
@@ -25,7 +25,7 @@ public class CStrollGoal extends WaterAvoidingRandomStrollGoal {
 
     @Override
     public boolean canContinueToUse() {
-        if(this.mob.getIsBusy()){
+        if(this.mob.getIsBusy() || this.mob.getTarget() != null){
             return false;
         }
         return super.canContinueToUse();

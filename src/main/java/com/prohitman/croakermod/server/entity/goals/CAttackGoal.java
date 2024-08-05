@@ -13,17 +13,18 @@ public class CAttackGoal extends MeleeAttackGoal {
 
     @Override
     public boolean canUse() {
-        if(this.mob != null && this.mob.jumpCooldown == 0){
+/*        if(this.mob != null && this.mob.jumpCooldown == 0){
             return false;
-        }
+        }*/
         return super.canUse();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if(this.mob != null && this.mob.jumpCooldown == 0){
+/*        if(this.mob != null && this.mob.jumpCooldown == 0){
             return false;
-        }
+        }*/
         return super.canContinueToUse();
     }
+
 }

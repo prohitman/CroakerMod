@@ -1,5 +1,6 @@
 package com.prohitman.croakermod.server.entity.goals;
 
+import com.prohitman.croakermod.server.entity.CroakerEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -61,6 +62,9 @@ public class CLookAtPlayerGoal extends Goal {
             }
 
             if (this.lookAtType == Player.class) {
+                if(this.lookAt != null && this.mob.distanceTo(this.lookAt) <= 15 && ((CroakerEntity)this.mob).jumpCooldown == 0){
+                    return false;
+                }
                 this.lookAt = this.mob.level.getNearestPlayer(this.lookAtContext, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
             } else {
                 this.lookAt = this.mob.level.getNearestEntity(this.mob.level.getEntitiesOfClass(this.lookAtType, this.mob.getBoundingBox().inflate((double)this.lookDistance, 8.0D, (double)this.lookDistance), (p_148124_) -> {
@@ -80,7 +84,11 @@ public class CLookAtPlayerGoal extends Goal {
             return false;
         } else if (this.mob.distanceToSqr(this.lookAt) > (double)(this.lookDistance * this.lookDistance)) {
             return false;
-        } else {
+        }
+        else if(this.lookAt != null && this.mob.distanceTo(this.lookAt) <= 15 && ((CroakerEntity)this.mob).jumpCooldown == 0){
+            return false;
+        }
+        else {
             return this.lookTime > 0;
         }
     }

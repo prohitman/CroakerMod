@@ -36,7 +36,7 @@ public class CRandomLookAroundGoal extends Goal {
     }
     @Override
     public boolean canUse() {
-        if(this.mob.getIsBusy()){
+        if(this.mob.getIsBusy() || this.mob.getTarget() != null){
             return false;
         }
         return this.mob.getRandom().nextFloat() < 0.02F;
@@ -44,7 +44,7 @@ public class CRandomLookAroundGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        if(this.mob.getIsBusy()){
+        if(this.mob.getIsBusy() || this.mob.getTarget() != null){
             return false;
         }
         return this.lookTime >= 0;

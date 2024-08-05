@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.JumpGoal;
 import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
@@ -16,7 +17,7 @@ public class CPounceGoal extends JumpGoal {
         this.croaker = entity;
     }
     public boolean canUse() {
-        //System.out.println("Called can use.");
+        System.out.println("Called can use.");
         if(croaker.jumpCooldown != 0){
             System.out.println("Cooldown active");
             return false;
@@ -27,10 +28,14 @@ public class CPounceGoal extends JumpGoal {
             return false;
         }
 
-        LivingEntity livingentity = croaker.getTarget();
+        Player livingentity = (Player) croaker.getTarget();
+        if(livingentity == null){
+            System.out.println("Target null for some reason");
+        }
         if (livingentity != null && livingentity.isAlive()) {
             double distance = croaker.distanceTo(livingentity);
-            if(distance <= 2 || distance >= 15){
+            if(/*distance <= 2 ||*/ distance >= 15){
+                System.out.println("Too far");
                 return false;
             }
             if (livingentity.getMotionDirection() != livingentity.getDirection()) {
@@ -40,11 +45,13 @@ public class CPounceGoal extends JumpGoal {
                 boolean flag = CroakerEntity.isPathClear(croaker, livingentity);
                 if (!flag) {
                     croaker.getNavigation().createPath(livingentity, 0);
+                    System.out.println("Path not clear");
                 }
 
                 return flag;
             }
         } else {
+            System.out.println("Can use out");
             return false;
         }
     }
@@ -60,7 +67,7 @@ public class CPounceGoal extends JumpGoal {
         if (livingentity != null && livingentity.isAlive()) {
             double distance = croaker.distanceTo(livingentity);
             System.out.println("Distance from target: " + distance);
-            if(distance <= 2 || distance >= 15){
+            if(/*distance <= 2 ||*/ distance >= 15){
                 return false;
             }
             double d0 = croaker.getDeltaMovement().y;

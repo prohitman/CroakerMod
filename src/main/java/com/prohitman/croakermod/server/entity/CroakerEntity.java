@@ -39,6 +39,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -59,7 +60,10 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
     private static final EntityDataAccessor<Boolean> BUSY = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> POUNCING = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> STALKING = SynchedEntityData.defineId(CroakerEntity.class, EntityDataSerializers.BOOLEAN);
+
     public int jumpCooldown = 0;
+    public boolean shouldTickPounce = false;
     public CroakerEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.xpReward = 25;
@@ -69,32 +73,29 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         this.goalSelector.addGoal(1, new CRandomLookAroundGoal(this));
         this.goalSelector.addGoal(1, new CStrollGoal(this, 1.0D, 0.001F));
         this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new CAttackGoal(this, 1.15d, true));
-
+        this.goalSelector.addGoal(2, new CAttackGoal(this, 1.3d, true));
         this.goalSelector.addGoal(6, new CLookAtPlayerGoal(this, Player.class, 50, 0.01f));
         this.goalSelector.addGoal(6, new FollowPlayerGoal(this, 0.8d, 15, 35));
 
         this.targetSelector.addGoal(7, new NearestAttackableTargetGoal<>(this, Player.class, false));
-        this.goalSelector.addGoal(8, new CPounceGoal(this));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.FOLLOW_RANGE, 100)
                 .add(Attributes.MOVEMENT_SPEED, (double)0.3F)
-                .add(Attributes.ATTACK_DAMAGE, 10.0D)
+                .add(Attributes.ATTACK_DAMAGE, 0.001D)
                 .add(Attributes.ARMOR, 5.0D)
                 .add(Attributes.MAX_HEALTH, 5.0D);
     }
 
-    public static boolean checkCroakerSpawnRules(EntityType<? extends PathfinderMob> pAnimal, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
-        return pLevel.getBlockState(pPos.below()).is(BlockTags.FROGS_SPAWNABLE_ON);
+    public static boolean checkCroakerSpawnRules(EntityType<? extends PathfinderMob> pAnimal, ServerLevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.FROGS_SPAWNABLE_ON) && Monster.isDarkEnoughToSpawn(pLevel, pPos, pRandom);
     }
 
     public boolean getIsBusy(){
         return entityData.get(BUSY);
     }
-
     public void setBusy(boolean is_busy){
         entityData.set(BUSY, is_busy);
     }
@@ -104,12 +105,19 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     public void setPouncing(boolean is_pouncing){
         entityData.set(POUNCING, is_pouncing);
     }
+    public boolean getIsStalking(){
+        return entityData.get(BUSY);
+    }
+    public void setStalking(boolean is_stalking){
+        entityData.set(STALKING, is_stalking);
+    }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(BUSY, false);
         this.entityData.define(POUNCING, false);
+        this.entityData.define(STALKING, false);
     }
 
     @Override
@@ -117,6 +125,7 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         super.addAdditionalSaveData(pCompound);
         pCompound.putBoolean("busy", this.getIsBusy());
         pCompound.putBoolean("pouncing", this.getIsPouncing());
+        pCompound.putBoolean("stalking", this.getIsStalking());
     }
 
     @Override
@@ -124,6 +133,7 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
         super.readAdditionalSaveData(pCompound);
         this.setBusy(pCompound.getBoolean("busy"));
         this.setPouncing(pCompound.getBoolean("pouncing"));
+        this.setStalking(pCompound.getBoolean("stalking"));
     }
 
     @Override
@@ -135,6 +145,17 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
                jumpCooldown--;
             }
 
+            Player player = this.getLevel().getNearestPlayer(this, 50);
+            if(player != null){
+                this.setBusy(true);
+                if(this.tickCount % 20 == 0){
+                    System.out.println("Distance from player: " + this.distanceTo(player));
+                }
+                if(this.distanceTo(player) <= 15){
+                    this.setTarget(player);
+                }
+            }
+
             if(this.getHealth() < 0.3 * this.getMaxHealth() && this.getTarget() != null && this.getRandom().nextBoolean()){
                 double distance = this.distanceTo(this.getTarget());
                 if(distance <= 4){
@@ -143,9 +164,23 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
                     if(vec3 != null){
                         Path path = this.getNavigation().createPath(vec3.x, vec3.y, vec3.z, 0);
                         if(path != null){
+                            //this.setTarget(null);
                             this.getNavigation().moveTo(path, 1.2);
                         }
                     }
+                }
+            }
+
+            if(this.canPounce() && !this.shouldTickPounce){
+                this.startPounce();
+                this.shouldTickPounce = true;
+            }
+            if(this.shouldTickPounce){
+                if(this.canContinuePounce()){
+                    this.pounceTick();
+                } else {
+                    this.pounceStop();
+                    this.shouldTickPounce = false;
                 }
             }
         }
@@ -219,6 +254,92 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     JUMPING
      */
 
+    public boolean canPounce(){
+        if(this.jumpCooldown != 0){
+            return false;
+        }
+        if(!this.isOnGround()){
+            return false;
+        }
+
+        Player livingentity = (Player) this.getTarget();
+        if(livingentity == null){
+        }
+        if (livingentity != null && livingentity.isAlive()) {
+            double distance = this.distanceTo(livingentity);
+            if(distance <= 2 || distance >= 15){
+                return false;
+            }
+            if (livingentity.getMotionDirection() != livingentity.getDirection()) {
+                return false;
+            } else {
+                boolean flag = CroakerEntity.isPathClear(this, livingentity);
+                if (!flag) {
+                    this.getNavigation().createPath(livingentity, 0);
+                }
+
+                return flag;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean canContinuePounce(){
+        LivingEntity livingentity = this.getTarget();
+        if (livingentity != null && livingentity.isAlive()) {
+            double distance = this.distanceTo(livingentity);
+
+            if(distance <= 2 || distance >= 15){
+                return false;
+            }
+            double d0 = this.getDeltaMovement().y;
+            return (!(d0 * d0 < (double)0.05F) || !(Math.abs(this.getXRot()) < 15.0F) || !this.isOnGround());
+        } else {
+            return false;
+        }
+    }
+
+    public void startPounce() {
+        this.setPouncing(true);
+        LivingEntity livingentity = this.getTarget();
+        if (livingentity != null) {
+            this.getLookControl().setLookAt(livingentity, 60.0F, 30.0F);
+            Vec3 vec3 = (new Vec3(livingentity.getX() - this.getX(), livingentity.getY() - this.getY(), livingentity.getZ() - this.getZ())).normalize();
+            double d0 = Mth.nextDouble(this.getRandom(), 0.15d, 0.3d);
+            double d1 = Mth.nextDouble(this.getRandom(), 0, 0.35d);
+
+            this.setDeltaMovement(vec3.x * 0.9D * 1.2 + d0, 1.1D * 1.1 + d1, vec3.z * 0.9D * 1.2 + d0);
+        }
+
+        this.getNavigation().stop();
+    }
+
+    public void pounceStop() {
+        this.jumpCooldown = 250;
+        this.setPouncing(false);
+    }
+
+    public void pounceTick() {
+        LivingEntity livingentity = this.getTarget();
+        if (livingentity != null) {
+            this.getLookControl().setLookAt(livingentity, 60.0F, 30.0F);
+        }
+
+        Vec3 vec3 = this.getDeltaMovement();
+        if (vec3.y * vec3.y < (double)0.03F && this.getXRot() != 0.0F) {
+            this.setXRot(Mth.rotlerp(this.getXRot(), 0.0F, 0.2F));
+        } else {
+            double d0 = vec3.horizontalDistance();
+            double d1 = Math.signum(-vec3.y) * Math.acos(d0 / vec3.length()) * (double)(180F / (float)Math.PI);
+            this.setXRot((float)d1);
+        }
+
+        if (livingentity != null && this.distanceTo(livingentity) <= 3.0F) {
+            this.doHurtTarget(livingentity);
+        }
+    }
+
     public static boolean isPathClear(CroakerEntity pFox, LivingEntity pLivingEntity) {
         double d0 = pLivingEntity.getZ() - pFox.getZ();
         double d1 = pLivingEntity.getX() - pFox.getX();
@@ -238,24 +359,6 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
 
         return true;
     }
-
-    /*
-    CLIMBING
-     */
-
-
-    /*
-    LOOK/MOVE CONTROLLER
-     */
-/*    public class CroakerLookController extends LookControl {
-        public CroakerLookController() {
-            super(CroakerEntity.this);
-        }
-
-        protected boolean resetXRotOnTick() {
-            return !CroakerEntity.this.getIsPouncing();
-        }
-    }*/
 
     @Override
     public void registerControllers(AnimationData animationData) {
@@ -303,6 +406,12 @@ public class CroakerEntity extends AbstractClimberMob implements Enemy, IAnimata
     @Override
     protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.FROG_HURT;
+    }
+
+    protected void playStepSound(BlockPos pPos, BlockState pState) {
+        if(this.random.nextFloat() < 0.3){
+            this.playSound(SoundEvents.FROG_STEP, 0.5F, 1.9f);
+        }
     }
 
     @Override
