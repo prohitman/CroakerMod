@@ -18,7 +18,7 @@
     "sounds": [
       "croakermod:croaker_cry_1",
       "croakermod:croaker_cry_2",
-      "croakermod:croaker_clicking",
+      "croakermod:croaker_cry_clicking",
       "croakermod:croaker_breath"
     ]
   },"croaker_attack": {

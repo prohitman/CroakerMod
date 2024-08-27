@@ -15,10 +15,12 @@ public class CroakingGoal extends Goal {
     public boolean canUse() {
         if(entity == null){
             return false;
-        } else if(this.entity.getIsBusy() || this.entity.getIsPouncing() || this.entity.getIsStalking() || this.entity.getTarget() != null){
+        }else if(entity.croakingCooldown != 0){
+            return false;
+        }else if(this.entity.getIsBusy() || this.entity.getIsPouncing() || this.entity.getIsStalking() || this.entity.getTarget() != null){
             return false;
         }
-        this.maxTickCount = this.entity.getRandom().nextInt(30, 80);
+        this.maxTickCount = this.entity.getRandom().nextInt(50) + 30;
         return this.entity.getRandom().nextFloat() < 0.01;
     }
 
@@ -60,5 +62,6 @@ public class CroakingGoal extends Goal {
         super.stop();
         this.entity.setCroaking(false);
         this.tickCount = 0;
+        this.entity.croakingCooldown = this.entity.getRandom().nextInt(100) + 200;
     }
 }

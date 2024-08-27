@@ -24,7 +24,6 @@ public class CroakingSoundInstance extends AbstractTickableSoundInstance {
         super(ModSounds.CROAKER_CROAKING.get(), SoundSource.AMBIENT, entity.getRandom());
         this.croaker = entity;
         this.looping = true;
-        this.delay = 5;
     }
 
     @Override
